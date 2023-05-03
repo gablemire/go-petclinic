@@ -11,8 +11,10 @@ import (
 
 const MaxWaitDuration = 5 * time.Second
 
+type ShutdownChannel = <-chan error
+
 type componentSignal struct {
-	doneChan <-chan error
+	doneChan ShutdownChannel
 	done     bool
 }
 
@@ -30,7 +32,7 @@ func NewGracefulShutdown(ctx context.Context) (*GracefulShutdown, context.Contex
 	}, appCtx
 }
 
-func (gs *GracefulShutdown) RegisterComponent(name string, doneChan <-chan error) {
+func (gs *GracefulShutdown) RegisterComponent(name string, doneChan ShutdownChannel) {
 	gs.components[name] = &componentSignal{
 		doneChan: doneChan,
 		done:     false,
@@ -44,7 +46,7 @@ func (gs *GracefulShutdown) WaitForShutdown(ctx context.Context) {
 	// Waiting for termination signal
 	<-waitCtx.Done()
 
-	fmt.Println("Received SIGTERM signal. Gracefully terminating application")
+	fmt.Println("Received shutdown signal. Gracefully terminating application")
 	gs.shutdown()
 
 	componentsToWait := len(gs.components)
