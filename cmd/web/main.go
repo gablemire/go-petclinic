@@ -2,6 +2,7 @@ package main
 
 import (
 	"GoPetClinic/src/config"
+	"GoPetClinic/src/persistence"
 	"GoPetClinic/src/system"
 	"GoPetClinic/src/web"
 	"context"
@@ -13,6 +14,10 @@ func main() {
 
 	err := system.BootstrapLogger()
 	system.PanicOnError(err)
+
+	mongoDoneChan, err := persistence.BootstrapMongoDB(appCtx, appConfig)
+	system.PanicOnError(err)
+	gs.RegisterComponent("mongodb", mongoDoneChan)
 
 	ginDoneChan, err := web.BootstrapGin(appCtx, appConfig)
 	system.PanicOnError(err)
